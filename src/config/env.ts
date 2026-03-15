@@ -1,0 +1,15 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+export const ENV = {
+    PORT: process.env.PORT || 5000,
+    MONGO_URI: (process.env.MONGO_URI as string) || 'mongodb://localhost:27017/banking_db',
+    JWT_SECRET: (process.env.JWT_SECRET as string) || 'secret_key',
+    REFRESH_TOKEN_SECRET: (process.env.REFRESH_TOKEN_SECRET as string) || 'refresh_secret_key',
+    RESEND_API_KEY: (process.env.RESEND_API_KEY as string) || 're_your_api_key',
+    ADMIN_EMAIL: (process.env.ADMIN_EMAIL as string) || 'admin@capital24.com',
+    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
+    JWT_EXPIRES_IN: '24h',
+    REFRESH_TOKEN_EXPIRES_IN: '7d',
+};
