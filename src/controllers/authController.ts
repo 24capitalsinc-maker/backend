@@ -107,20 +107,28 @@ export const verifyEmail = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Invalid verification code. Please try again.' });
         }
 
-        // Mark as verified and clear the code
-        user.isEmailVerified = true;
-        user.verificationCode = undefined;
-        user.verificationCodeExpires = undefined;
-        await user.save();
+        // Mark as verified and clear the code using an atomic update
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            {
+                $set: { isEmailVerified: true },
+                $unset: { verificationCode: 1, verificationCodeExpires: 1 }
+            },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User record lost during verification.' });
+        }
 
         // Now issue the full auth tokens
-        const { accessToken, refreshToken } = generateTokens((user._id as any).toString());
+        const { accessToken, refreshToken } = generateTokens((updatedUser._id as any).toString());
         res.json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            accountNumber: user.accountNumber,
-            role: user.role,
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            accountNumber: updatedUser.accountNumber,
+            role: updatedUser.role,
             accessToken,
             refreshToken,
         });
@@ -239,9 +247,13 @@ export const resendVerificationCode = async (req: Request, res: Response) => {
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
         const verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
 
-        user.verificationCode = verificationCode;
-        user.verificationCodeExpires = verificationCodeExpires;
-        await user.save();
+        // Update user with new code using an atomic update
+        await User.findByIdAndUpdate(userId, {
+            $set: {
+                verificationCode: verificationCode,
+                verificationCodeExpires: verificationCodeExpires
+            }
+        });
 
         // Send the new verification code email
         await sendVerificationEmail(user.email, user.name, verificationCode);
