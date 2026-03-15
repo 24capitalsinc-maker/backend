@@ -16,16 +16,35 @@ import { errorHandler } from './middleware/errorMiddleware';
 const app = express();
 
 const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+// Guard filesystem operations for Vercel/Serverless (read-only)
+if (process.env.NODE_ENV !== 'production' && !fs.existsSync(uploadDir)) {
+    try {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    } catch (err) {
+        console.warn('Warning: Could not create uploads directory (expected in serverless/vercel):', err);
+    }
 }
+
+// Ensure Database Connection for Serverless/Vercel
+connectDB();
+
+// Rate Limiting
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per window
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: 'Too many requests from this IP, please try again after 15 minutes.'
+});
 
 // Middlewares
 app.use(helmet());
+app.use(globalLimiter);
 app.use(cors({
-    origin: '*',
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

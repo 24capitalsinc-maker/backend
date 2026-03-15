@@ -10,6 +10,8 @@ const startServer = async () => {
     });
 };
 
-startServer().catch(err => {
-    console.error('Failed to start server:', err);
-});
+if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+    startServer().catch(err => {
+        console.error('Failed to start server:', err);
+    });
+}
