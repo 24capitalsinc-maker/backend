@@ -140,12 +140,29 @@ export const updateSystemSettings = async (req: Request, res: Response) => {
 export const updateTransaction = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const transaction = await Transaction.findById(id);
+        const transaction = await Transaction.findById(id).populate('sender');
         if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
 
+        const oldStatus = transaction.status;
         Object.assign(transaction, req.body);
-        await transaction.save();
-        res.json(transaction);
+        const updatedTransaction = await transaction.save();
+
+        res.json(updatedTransaction);
+
+        // Notify user if status changed
+        if (req.body.status && req.body.status !== oldStatus) {
+            const sender = transaction.sender as any;
+            if (sender && sender.email) {
+                const { sendTransferStatusUpdate } = require('../services/emailService');
+                sendTransferStatusUpdate(
+                    sender.email,
+                    transaction.amount,
+                    transaction.status,
+                    transaction.referenceId,
+                    req.body.description || transaction.description
+                );
+            }
+        }
     } catch (error: any) {
         console.error('DEBUG: updateTransaction Error:', error);
         res.status(500).json({

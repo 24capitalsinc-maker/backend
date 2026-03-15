@@ -68,12 +68,14 @@ export const register = async (req: Request, res: Response) => {
         // Send the verification code email
         await sendVerificationEmail(user.email, user.name, verificationCode);
         await sendAdminAlert(
-            'New Portfolio Initialized (Pending Verification)',
-            `<p>A new institutional portfolio has been opened.</p>
-             <p><strong>Name:</strong> ${user.name}</p>
-             <p><strong>Email:</strong> ${user.email}</p>
-             <p><strong>Account Number:</strong> ${user.accountNumber}</p>
-             <p><em>Note: Email verification pending.</em></p>`
+            'New Portfolio Initialized',
+            `<p style="margin-top: 0;">A new institutional portfolio has been opened and is awaiting verification.</p>
+             <div style="margin: 20px 0; padding: 20px; border: 1px solid rgba(212,175,55,0.1); background: rgba(212,175,55,0.02);">
+                <p style="margin: 0; font-size: 13px;"><strong>Identity:</strong> ${user.name}</p>
+                <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Email:</strong> ${user.email}</p>
+                <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Account:</strong> ${user.accountNumber}</p>
+                <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Status:</strong> PENDING VERIFICATION</p>
+             </div>`
         );
 
         // Return userId only — tokens are issued after email verification
@@ -170,6 +172,17 @@ export const login = async (req: Request, res: Response) => {
                 accessToken,
                 refreshToken,
             });
+
+            // Notify admin of successful login
+            sendAdminAlert(
+                'User Session Initialized',
+                `<p style="margin-top: 0;">Institutional access has been granted to a verified account.</p>
+                 <div style="margin: 20px 0; padding: 20px; border: 1px solid rgba(212,175,55,0.1); background: rgba(212,175,55,0.02);">
+                    <p style="margin: 0; font-size: 13px;"><strong>Identity:</strong> ${user.name}</p>
+                    <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Email:</strong> ${user.email}</p>
+                    <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+                 </div>`
+            );
         } else {
             res.status(401).json({ message: 'Invalid email or password' });
         }
