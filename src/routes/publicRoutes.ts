@@ -14,7 +14,8 @@ router.get('/settings', async (req, res) => {
             companyName: 'Capital24',
             logoText: 'Capital',
             logoAccent: '24',
-            logoUrl: ''
+            logoUrl: '',
+            isRegistrationEnabled: true
         });
 
         // Only return non-sensitive fields
@@ -24,7 +25,8 @@ router.get('/settings', async (req, res) => {
             logoAccent: settings.logoAccent,
             logoUrl: settings.logoUrl,
             socialLinks: settings.socialLinks,
-            supportEmail: settings.supportEmail
+            supportEmail: settings.supportEmail,
+            isRegistrationEnabled: settings.isRegistrationEnabled
         });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });

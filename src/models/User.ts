@@ -16,6 +16,9 @@ export interface IUser extends Document {
     role: 'user' | 'admin';
     isFrozen: boolean;
     twoFactorEnabled: boolean;
+    isEmailVerified: boolean;
+    verificationCode?: string;
+    verificationCodeExpires?: Date;
     notifications: {
         email: boolean;
         sms: boolean;
@@ -52,6 +55,9 @@ const UserSchema: Schema = new Schema({
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     isFrozen: { type: Boolean, default: false },
     twoFactorEnabled: { type: Boolean, default: false },
+    isEmailVerified: { type: Boolean, default: false },
+    verificationCode: { type: String },
+    verificationCodeExpires: { type: Date },
     notifications: {
         email: { type: Boolean, default: true },
         sms: { type: Boolean, default: false },

@@ -69,18 +69,21 @@ export const transferFunds = async (
 
         const status = protocol === 'Domestic' ? 'success' : 'pending';
 
+        // Clean up metadata defaults
+        const currency = metadata.currency || 'USD';
+        const displayJurisdiction = metadata.jurisdiction;
+
         const commonData = {
             amount,
-            currency: metadata.currency || 'USD',
+            currency,
             routingProtocol: protocol,
             swiftCode: metadata.swiftCode,
             iban: metadata.iban,
-            jurisdiction: metadata.jurisdiction,
+            jurisdiction: displayJurisdiction,
             status,
             referenceId,
             receiverAccountNumber,
-            detailLabel: `${protocol} // ${protocol === 'Domestic' ? 'INBOUND SETTLEMENT' : 'OUTBOUND TRANSACTION'}`, // Default logic for labels
-            valueLabel: `${metadata.currency || 'USD'} // SETTLED`
+            valueLabel: `${currency} // SETTLED`
         };
 
         // Create transactions records
@@ -89,8 +92,10 @@ export const transferFunds = async (
             sender: sender._id,
             receiver: receiver?._id,
             type: 'debit',
-            description: protocol === 'Domestic' ? `Transfer to ${receiver?.name}: ${description}` : `External Transfer: ${description}`,
-            detailLabel: `${protocol} // OUTBOUND TRANSACTION` // Override for debit if needed
+            description: protocol === 'Domestic'
+                ? `Transfer to ${receiver?.name || receiverAccountNumber}`
+                : `${protocol} Transfer to ${receiverAccountNumber}`,
+            detailLabel: `${protocol} // OUTBOUND`
         }], { session });
 
         if (protocol === 'Domestic' && receiver) {
@@ -100,7 +105,8 @@ export const transferFunds = async (
                 receiver: receiver._id,
                 type: 'credit',
                 referenceId: referenceId + '-C', // Unique credit ref
-                description: `Transfer from ${sender.name}: ${description}`,
+                description: `Transfer from ${sender.name}`,
+                detailLabel: `${protocol} // INBOUND`
             }], { session });
 
             // Send notification to receiver
