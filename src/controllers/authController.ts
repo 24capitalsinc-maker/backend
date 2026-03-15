@@ -84,7 +84,7 @@ export const register = async (req: Request, res: Response) => {
             message: 'Registration successful. Please check your email for the verification code.',
         });
     } catch (error: any) {
-        console.error('Registration Error:', error);
+        // Handled via centralized error middleware
         res.status(500).json({ message: 'Server error: ' + error.message });
     }
 };
@@ -135,7 +135,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
             refreshToken,
         });
     } catch (error: any) {
-        console.error('Verify Email Error:', error);
+        // Handled via centralized error middleware
         res.status(500).json({ message: 'Server error: ' + error.message });
     }
 };
@@ -187,7 +187,7 @@ export const login = async (req: Request, res: Response) => {
             res.status(401).json({ message: 'Invalid email or password' });
         }
     } catch (error: any) {
-        console.error('Login Error:', error);
+        // Handled via centralized error middleware
         res.status(500).json({ message: 'Server error: ' + error.message });
     }
 };
@@ -212,7 +212,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
         res.json({ message: 'If an account exists, a reset link has been sent.' });
     } catch (error: any) {
-        console.error('Forgot Password Error:', error);
+        // Handled via centralized error middleware
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -241,7 +241,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
         res.json({ message: 'Success! Your institutional credentials have been updated.' });
     } catch (error: any) {
-        console.error('Reset Password Error:', error);
+        // Handled via centralized error middleware
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -273,7 +273,7 @@ export const resendVerificationCode = async (req: Request, res: Response) => {
 
         res.json({ message: 'A new verification code has been sent to your email.' });
     } catch (error: any) {
-        console.error('Resend Verification Code Error:', error);
+        // Handled via centralized error middleware
         res.status(500).json({ message: 'Server error: ' + error.message });
     }
 };

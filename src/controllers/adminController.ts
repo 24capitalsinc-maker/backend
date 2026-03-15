@@ -164,11 +164,9 @@ export const updateTransaction = async (req: Request, res: Response) => {
             }
         }
     } catch (error: any) {
-        console.error('DEBUG: updateTransaction Error:', error);
+        // Handled via centralized error middleware
         res.status(500).json({
-            message: 'Server error during transaction update',
-            details: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            message: 'Server error during transaction update'
         });
     }
 };
@@ -238,7 +236,7 @@ export const uploadLogo = async (req: Request, res: Response): Promise<any> => {
              <p><strong>Logo URL:</strong> ${settings.logoUrl}</p>`
         );
     } catch (error) {
-        console.error('DEBUG: Upload Error:', error);
+        // Handled via centralized error middleware
         res.status(500).json({ message: 'Failed to persist institutional asset' });
     }
 };

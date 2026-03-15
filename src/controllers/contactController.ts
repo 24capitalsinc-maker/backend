@@ -36,7 +36,7 @@ export const submitContactForm = async (req: Request, res: Response) => {
         );
 
     } catch (error) {
-        console.error('Contact Form Error:', error);
+        // Handled via centralized error middleware
         res.status(500).json({ message: 'Institutional failure during message transmission.' });
     }
 };

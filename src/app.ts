@@ -56,12 +56,7 @@ app.use(cors({
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Request Logger for Debugging
-app.use((req, res, next) => {
-    console.log(`DEBUG: [${new Date().toISOString()}] ${req.method} ${req.url}`);
-    console.log(`DEBUG: Auth Header: ${req.headers.authorization ? 'PRESENT' : 'MISSING'}`);
-    next();
-});
+
 
 // Routes
 app.use('/api/public', publicRoutes);
