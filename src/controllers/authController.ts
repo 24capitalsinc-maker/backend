@@ -224,3 +224,31 @@ export const resetPassword = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+export const resendVerificationCode = async (req: Request, res: Response) => {
+    const { userId } = req.body;
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+        if (user.isEmailVerified) {
+            return res.status(400).json({ message: 'This account is already verified.' });
+        }
+
+        // Generate a new 6-digit verification code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+        user.verificationCode = verificationCode;
+        user.verificationCodeExpires = verificationCodeExpires;
+        await user.save();
+
+        // Send the new verification code email
+        await sendVerificationEmail(user.email, user.name, verificationCode);
+
+        res.json({ message: 'A new verification code has been sent to your email.' });
+    } catch (error: any) {
+        console.error('Resend Verification Code Error:', error);
+        res.status(500).json({ message: 'Server error: ' + error.message });
+    }
+};

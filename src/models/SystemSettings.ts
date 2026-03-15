@@ -36,4 +36,4 @@ const SystemSettingsSchema: Schema = new Schema({
     updatedAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.model<ISystemSettings>('SystemSettings', SystemSettingsSchema);
+export default mongoose.models.SystemSettings || mongoose.model<ISystemSettings>('SystemSettings', SystemSettingsSchema);

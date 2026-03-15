@@ -38,4 +38,4 @@ const TransactionSchema: Schema = new Schema({
     createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model<ITransaction>('Transaction', TransactionSchema);
+export default mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema);

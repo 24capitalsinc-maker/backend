@@ -18,4 +18,4 @@ const ContactMessageSchema: Schema = new Schema({
     status: { type: String, enum: ['new', 'read', 'replied', 'archived'], default: 'new' }
 }, { timestamps: true });
 
-export default mongoose.model<IContactMessage>('ContactMessage', ContactMessageSchema);
+export default mongoose.models.ContactMessage || mongoose.model<IContactMessage>('ContactMessage', ContactMessageSchema);

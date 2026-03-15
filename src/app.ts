@@ -25,8 +25,15 @@ if (process.env.NODE_ENV !== 'production' && !fs.existsSync(uploadDir)) {
     }
 }
 
-// Ensure Database Connection for Serverless/Vercel
-connectDB();
+// Database Connection Middleware for Serverless/Vercel
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Rate Limiting
 const globalLimiter = rateLimit({
