@@ -53,14 +53,15 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
              </div>`
         );
 
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: `"optimanexgen" <${ENV.SMTP_USER}>`,
             to: email,
             subject: 'Institutional Onboarding: Welcome to optimanexgen',
             html,
         });
+        console.log(`✅ Welcome email sent to ${email}. MessageID: ${info.messageId}`);
     } catch (error) {
-        console.error('Error sending welcome email:', error);
+        console.error(`❌ Error sending welcome email to ${email}:`, error);
     }
 };
 
@@ -78,14 +79,15 @@ export const sendVerificationEmail = async (email: string, name: string, code: s
              <p style="font-size: 12px; color: rgba(255,255,255,0.4);">If you did not initiate this request, please mobilize security protocols immediately by contacting your advisor.</p>`
         );
 
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: `"optimanexgen Security" <${ENV.SMTP_USER}>`,
             to: email,
             subject: 'Secure Authenticator: Verification Protocol',
             html,
         });
+        console.log(`✅ Verification email sent to ${email}. MessageID: ${info.messageId}`);
     } catch (error) {
-        console.error('Error sending verification email:', error);
+        console.error(`❌ Error sending verification email to ${email}:`, error);
     }
 };
 
@@ -114,14 +116,15 @@ export const sendTransactionNotification = async (email: string, amount: number,
              <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 30px;">This transaction has been recorded on the global institutional ledger.</p>`
         );
 
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: `"optimanexgen Ledger" <${ENV.SMTP_USER}>`,
             to: email,
             subject,
             html,
         });
+        console.log(`✅ Transaction notification sent to ${email}. MessageID: ${info.messageId}`);
     } catch (error) {
-        console.error('Error sending transaction notification email:', error);
+        console.error(`❌ Error sending transaction notification to ${email}:`, error);
     }
 };
 
@@ -144,14 +147,15 @@ export const sendTransferStatusUpdate = async (email: string, amount: number, st
 
         const html = getBaseTemplate(title, content, 'Institutional Review');
 
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: `"optimanexgen Review" <${ENV.SMTP_USER}>`,
             to: email,
             subject: `Institutional Update: ${title}`,
             html,
         });
+        console.log(`✅ Status update email sent to ${email}. MessageID: ${info.messageId}`);
     } catch (error) {
-        console.error('Error sending transfer status update email:', error);
+        console.error(`❌ Error sending transfer status update to ${email}:`, error);
     }
 };
 
@@ -168,14 +172,15 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
              <p style="font-size: 12px; color: rgba(255,255,255,0.4);">This link will expire in 15 minutes. If you did not initialize this sequence, mobilize support immediately.</p>`
         );
 
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: `"optimanexgen Security" <${ENV.SMTP_USER}>`,
             to: email,
             subject: 'Credential Recovery: Secure Link',
             html,
         });
+        console.log(`✅ Password reset email sent to ${email}. MessageID: ${info.messageId}`);
     } catch (error) {
-        console.error('Error sending reset password email:', error);
+        console.error(`❌ Error sending reset password email to ${email}:`, error);
     }
 };
 
@@ -187,14 +192,15 @@ export const sendAdminAlert = async (subject: string, content: string) => {
             'Sovereign Operations'
         );
 
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: `"optimanexgen Ops" <${ENV.SMTP_USER}>`,
             to: ENV.ADMIN_EMAIL,
             subject: `[ADMIN ALERT] ${subject}`,
             html,
         });
+        console.log(`✅ Admin alert sent to ${ENV.ADMIN_EMAIL}. MessageID: ${info.messageId}`);
     } catch (error) {
-        console.error('Error sending admin alert email:', error);
+        console.error(`❌ Error sending admin alert to ${ENV.ADMIN_EMAIL}:`, error);
     }
 };
 
