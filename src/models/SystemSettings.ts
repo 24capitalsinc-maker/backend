@@ -21,11 +21,11 @@ export interface ISystemSettings extends Document {
 const SystemSettingsSchema: Schema = new Schema({
     isMaintenanceMode: { type: Boolean, default: false },
     isRegistrationEnabled: { type: Boolean, default: true },
-    companyName: { type: String, default: 'Capital24' },
-    supportEmail: { type: String, default: 'support@capital24.com' },
-    logoUrl: { type: String, default: '' },
-    logoText: { type: String, default: 'Capital' },
-    logoAccent: { type: String, default: '24' },
+    companyName: { type: String, default: 'optimanexgen' },
+    supportEmail: { type: String, default: 'support@optimanexgen.org' },
+    logoUrl: { type: String, default: '/logo.png' },
+    logoText: { type: String, default: 'optima' },
+    logoAccent: { type: String, default: 'nexgen' },
     socialLinks: {
         twitter: { type: String, default: '' },
         linkedin: { type: String, default: '' },

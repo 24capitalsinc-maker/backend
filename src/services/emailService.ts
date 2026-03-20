@@ -1,9 +1,22 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { ENV } from '../config/env';
 
-const resend = new Resend(ENV.RESEND_API_KEY);
+// Create a transporter using SMTP settings (Namecheap cPanel)
+const transporter = nodemailer.createTransport({
+    host: ENV.SMTP_HOST,
+    port: ENV.SMTP_PORT, // 465 for SSL, 587 for TLS
+    secure: ENV.SMTP_PORT === 465, // true for 465, false for other ports
+    auth: {
+        user: ENV.SMTP_USER,
+        pass: ENV.SMTP_PASS,
+    },
+    tls: {
+        // Do not fail on invalid certs (common for cPanel shared hosting)
+        rejectUnauthorized: false
+    }
+});
 
-const getBaseTemplate = (title: string, content: string, footerPrefix: string = "Capital24 Secure") => `
+const getBaseTemplate = (title: string, content: string, footerPrefix: string = "optimanexgen Secure") => `
     <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #050505; color: #ffffff; padding: 60px 20px; text-align: center;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #0a0a0a; border: 1px solid rgba(212,175,55,0.15); box-shadow: 0 40px 100px rgba(0,0,0,0.8);">
             <!-- Header -->
@@ -20,8 +33,8 @@ const getBaseTemplate = (title: string, content: string, footerPrefix: string = 
             <!-- Footer -->
             <div style="padding: 30px 40px; border-top: 1px solid rgba(212,175,55,0.05); background-color: rgba(212,175,55,0.02);">
                 <p style="color: rgba(255,255,255,0.2); font-size: 11px; margin: 0; letter-spacing: 0.1em;">
-                    This communication is intended solely for institutional partners of Capital24. <br>
-                    © 2026 Capital24 Institutional Wealth. All global meridians reserved.
+                    This communication is intended solely for institutional partners of optimanexgen. <br>
+                    © 2026 optimanexgen Institutional Wealth. All global meridians reserved.
                 </p>
             </div>
         </div>
@@ -33,17 +46,17 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
         const html = getBaseTemplate(
             'Institutional Onboarding.',
             `<p style="margin-top: 0;">Welcome, <strong>${name}</strong>.</p>
-             <p>Your institutional portfolio has been successfully established within the Capital24 sovereign vault. You now have access to global liquidity and private wealth management protocols.</p>
+             <p>Your institutional portfolio has been successfully established within the optimanexgen sovereign vault. You now have access to global liquidity and private wealth management protocols.</p>
              <p>Our commitment to your capital preservation and growth is absolute.</p>
              <div style="margin-top: 40px; padding: 20px; border-left: 2px solid #D4AF37; background: rgba(212,175,55,0.05);">
                 <p style="margin: 0; font-size: 13px; color: #D4AF37;"><strong>Protocol Alpha-7 Active</strong><br>Account status: Live & Verified</p>
              </div>`
         );
 
-        await resend.emails.send({
-            from: 'Capital24 <wealth@resend.dev>',
+        await transporter.sendMail({
+            from: `"optimanexgen" <${ENV.SMTP_USER}>`,
             to: email,
-            subject: 'Institutional Onboarding: Welcome to Capital24',
+            subject: 'Institutional Onboarding: Welcome to optimanexgen',
             html,
         });
     } catch (error) {
@@ -65,8 +78,8 @@ export const sendVerificationEmail = async (email: string, name: string, code: s
              <p style="font-size: 12px; color: rgba(255,255,255,0.4);">If you did not initiate this request, please mobilize security protocols immediately by contacting your advisor.</p>`
         );
 
-        await resend.emails.send({
-            from: 'Capital24 Security <security@resend.dev>',
+        await transporter.sendMail({
+            from: `"optimanexgen Security" <${ENV.SMTP_USER}>`,
             to: email,
             subject: 'Secure Authenticator: Verification Protocol',
             html,
@@ -101,8 +114,8 @@ export const sendTransactionNotification = async (email: string, amount: number,
              <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 30px;">This transaction has been recorded on the global institutional ledger.</p>`
         );
 
-        await resend.emails.send({
-            from: 'Capital24 Ledger <ledger@resend.dev>',
+        await transporter.sendMail({
+            from: `"optimanexgen Ledger" <${ENV.SMTP_USER}>`,
             to: email,
             subject,
             html,
@@ -131,8 +144,8 @@ export const sendTransferStatusUpdate = async (email: string, amount: number, st
 
         const html = getBaseTemplate(title, content, 'Institutional Review');
 
-        await resend.emails.send({
-            from: 'Capital24 Review <review@resend.dev>',
+        await transporter.sendMail({
+            from: `"optimanexgen Review" <${ENV.SMTP_USER}>`,
             to: email,
             subject: `Institutional Update: ${title}`,
             html,
@@ -155,8 +168,8 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
              <p style="font-size: 12px; color: rgba(255,255,255,0.4);">This link will expire in 15 minutes. If you did not initialize this sequence, mobilize support immediately.</p>`
         );
 
-        await resend.emails.send({
-            from: 'Capital24 Security <security@resend.dev>',
+        await transporter.sendMail({
+            from: `"optimanexgen Security" <${ENV.SMTP_USER}>`,
             to: email,
             subject: 'Credential Recovery: Secure Link',
             html,
@@ -174,8 +187,8 @@ export const sendAdminAlert = async (subject: string, content: string) => {
             'Sovereign Operations'
         );
 
-        await resend.emails.send({
-            from: 'Capital24 Ops <ops@resend.dev>',
+        await transporter.sendMail({
+            from: `"optimanexgen Ops" <${ENV.SMTP_USER}>`,
             to: ENV.ADMIN_EMAIL,
             subject: `[ADMIN ALERT] ${subject}`,
             html,
@@ -197,8 +210,8 @@ export const sendSecurityAlert = async (email: string, action: string) => {
              <p>If you did not authorize this modification, please contact our counter-fraud unit immediately to protect your assets.</p>`
         );
 
-        await resend.emails.send({
-            from: 'Capital24 Security <security@resend.dev>',
+        await transporter.sendMail({
+            from: `"optimanexgen Security" <${ENV.SMTP_USER}>`,
             to: email,
             subject: 'Urgent: Institutional Security Notification',
             html,

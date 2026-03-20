@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import User from '../models/User';
 import Transaction from '../models/Transaction';
 import SystemSettings from '../models/SystemSettings';
-import { sendAdminAlert } from '../services/emailService';
+import { sendAdminAlert, sendTransferStatusUpdate } from '../services/emailService';
 
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
@@ -153,7 +153,6 @@ export const updateTransaction = async (req: Request, res: Response) => {
         if (req.body.status && req.body.status !== oldStatus) {
             const sender = transaction.sender as any;
             if (sender && sender.email) {
-                const { sendTransferStatusUpdate } = require('../services/emailService');
                 sendTransferStatusUpdate(
                     sender.email,
                     transaction.amount,

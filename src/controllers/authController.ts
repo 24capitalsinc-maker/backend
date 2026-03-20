@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import User from '../models/User';
 import { ENV } from '../config/env';
 import { generateAccountNumber } from '../utils/generateAccountNumber';
-import { sendVerificationEmail, sendAdminAlert } from '../services/emailService';
+import { sendVerificationEmail, sendWelcomeEmail, sendAdminAlert, sendPasswordResetEmail } from '../services/emailService';
 import SystemSettings from '../models/SystemSettings';
 
 const generateTokens = (id: string) => {
@@ -134,6 +134,9 @@ export const verifyEmail = async (req: Request, res: Response) => {
             accessToken,
             refreshToken,
         });
+
+        // Send welcome email after verification
+        sendWelcomeEmail(updatedUser.email, updatedUser.name);
     } catch (error: any) {
         // Handled via centralized error middleware
         res.status(500).json({ message: 'Server error: ' + error.message });
@@ -208,7 +211,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         await user.save();
 
         // Pass the raw token to the email service
-        await require('../services/emailService').sendPasswordResetEmail(user.email, resetToken);
+        await sendPasswordResetEmail(user.email, resetToken);
 
         res.json({ message: 'If an account exists, a reset link has been sent.' });
     } catch (error: any) {
