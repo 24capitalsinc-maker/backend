@@ -14,7 +14,7 @@ router.get('/settings', async (req, res) => {
             companyName: 'Capital24',
             logoText: 'Capital',
             logoAccent: '24',
-            logoUrl: '',
+            logoUrl: '/logo.png',
             isRegistrationEnabled: true
         });
 
