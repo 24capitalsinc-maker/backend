@@ -73,11 +73,11 @@ export const updateUserBalance = async (req: Request, res: Response) => {
         });
 
         sendAdminAlert(
-            'Manual Liquidity Adjustment',
-            `<p>Institutional capital has been manually adjusted for entity <strong>${user.name}</strong> (${user.email}).</p>
+            'Balance Adjustment',
+            `<p>An account balance has been manually adjusted for user <strong>${user.name}</strong> (${user.email}).</p>
              <p><strong>Previous Balance:</strong> $${oldBalance.toLocaleString()}</p>
              <p><strong>New Balance:</strong> $${user.accountBalance.toLocaleString()}</p>
-             <p><strong>Principal:</strong> Administrator</p>
+             <p><strong>Action By:</strong> Administrator</p>
              <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>`
         );
     } catch (error) {
@@ -127,9 +127,9 @@ export const updateSystemSettings = async (req: Request, res: Response) => {
         res.json(settings);
 
         sendAdminAlert(
-            'System Governance Update',
-            `<p>Institutional parameters have been modified.</p>
-             <p><strong>Configured by:</strong> Administrator</p>
+            'Settings Updated',
+            `<p>The global system settings have been modified.</p>
+             <p><strong>Updated by:</strong> Administrator</p>
              <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>`
         );
     } catch (error) {
@@ -230,8 +230,8 @@ export const uploadLogo = async (req: Request, res: Response): Promise<any> => {
         });
 
         sendAdminAlert(
-            'Institutional Asset Update',
-            `<p>A new institutional logo has been persisted to the sovereign vault.</p>
+            'Brand Asset Update',
+            `<p>A new brand logo has been uploaded to the platform settings.</p>
              <p><strong>Logo URL:</strong> ${settings.logoUrl}</p>`
         );
     } catch (error) {

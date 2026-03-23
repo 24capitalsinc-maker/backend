@@ -113,15 +113,15 @@ export const transferFunds = async (
             sendTransactionNotification(receiver.email, amount, 'credit', referenceId);
         }
 
-        // Send high-level operational alert to admin for all transfers
+        // Send operational alert to admin for all transfers
         sendAdminAlert(
-            'Capital Flow Movement',
-            `<p style="margin-top: 0;">A fund transfer protocol has been successfully executed.</p>
-             <div style="margin: 20px 0; padding: 20px; border: 1px solid rgba(212,175,55,0.1); background: rgba(212,175,55,0.02);">
+            'Transfer processed',
+            `<p style="margin-top: 0;">A fund transfer has been processed.</p>
+             <div style="margin: 20px 0; padding: 20px; border: 1px solid #eeeeee; background: #fafafa;">
                 <p style="margin: 0; font-size: 13px;"><strong>Amount:</strong> ${commonData.currency} ${amount.toLocaleString()}</p>
                 <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Sender:</strong> ${sender.name}</p>
                 <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Recipient:</strong> ${receiver?.name || receiverAccountNumber}</p>
-                <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Protocol:</strong> ${protocol}</p>
+                <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Method:</strong> ${protocol}</p>
                 <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Status:</strong> ${status}</p>
                 <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Reference:</strong> ${referenceId}</p>
              </div>`

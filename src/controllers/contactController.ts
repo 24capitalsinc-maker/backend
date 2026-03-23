@@ -22,16 +22,16 @@ export const submitContactForm = async (req: Request, res: Response) => {
             id: newMessage._id
         });
 
-        // Notify Admin of new institutional inquiry
+        // Notify Admin of new message
         sendAdminAlert(
-            `New Secure Inquiry: ${subject}`,
-            `<p style="margin-top: 0;">A new institutional inquiry has been received from <strong>${name}</strong> (${email}).</p>
-             <div style="margin: 20px 0; padding: 20px; border: 1px solid rgba(212,175,55,0.1); background: rgba(212,175,55,0.02);">
+            `New Message: ${subject}`,
+            `<p style="margin-top: 0;">A new message has been received from <strong>${name}</strong> (${email}).</p>
+             <div style="margin: 20px 0; padding: 20px; border: 1px solid #eeeeee; background: #fafafa;">
                 <p style="margin: 0; font-size: 13px;"><strong>Subject:</strong> ${subject}</p>
-                <div style="margin-top: 20px; font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6;">
+                <div style="margin-top: 20px; font-size: 13px; color: #666666; line-height: 1.6;">
                     ${message}
                 </div>
-                <p style="margin: 20px 0 0 0; font-size: 11px; color: rgba(255,255,255,0.4);">Timestamp: ${new Date().toISOString()}</p>
+                <p style="margin: 20px 0 0 0; font-size: 11px; color: #999999;">Timestamp: ${new Date().toISOString()}</p>
              </div>`
         );
 

@@ -68,13 +68,13 @@ export const register = async (req: Request, res: Response) => {
         // Send the verification code email
         await sendVerificationEmail(user.email, user.name, verificationCode);
         await sendAdminAlert(
-            'New Portfolio Initialized',
-            `<p style="margin-top: 0;">A new institutional portfolio has been opened and is awaiting verification.</p>
-             <div style="margin: 20px 0; padding: 20px; border: 1px solid rgba(212,175,55,0.1); background: rgba(212,175,55,0.02);">
+            'New Account Registered',
+            `<p style="margin-top: 0;">A new user account has been registered and is awaiting verification.</p>
+             <div style="margin: 20px 0; padding: 20px; border: 1px solid #eeeeee; background: #fafafa;">
                 <p style="margin: 0; font-size: 13px;"><strong>Identity:</strong> ${user.name}</p>
                 <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Email:</strong> ${user.email}</p>
                 <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Account:</strong> ${user.accountNumber}</p>
-                <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Status:</strong> PENDING VERIFICATION</p>
+                <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Status:</strong> Awaiting Verification</p>
              </div>`
         );
 
@@ -178,9 +178,9 @@ export const login = async (req: Request, res: Response) => {
 
             // Notify admin of successful login
             sendAdminAlert(
-                'User Session Initialized',
-                `<p style="margin-top: 0;">Institutional access has been granted to a verified account.</p>
-                 <div style="margin: 20px 0; padding: 20px; border: 1px solid rgba(212,175,55,0.1); background: rgba(212,175,55,0.02);">
+                'Account Login',
+                `<p style="margin-top: 0;">A verified user has logged in to the platform.</p>
+                 <div style="margin: 20px 0; padding: 20px; border: 1px solid #eeeeee; background: #fafafa;">
                     <p style="margin: 0; font-size: 13px;"><strong>Identity:</strong> ${user.name}</p>
                     <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Email:</strong> ${user.email}</p>
                     <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
