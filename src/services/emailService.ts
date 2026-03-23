@@ -99,15 +99,22 @@ export const sendVerificationEmail = async (email: string, name: string, code: s
     }
 };
 
-export const sendTransactionNotification = async (email: string, amount: number, type: 'debit' | 'credit', referenceId: string) => {
+export const sendTransactionNotification = async (
+    email: string,
+    amount: number,
+    type: 'debit' | 'credit',
+    referenceId: string,
+    status: string = 'SETTLED',
+    protocol: string = 'Domestic'
+) => {
     try {
-        const subject = type === 'debit' ? 'Ledger Alert: Outbound Flow' : 'Ledger Alert: Inbound Capital';
+        const subject = type === 'debit' ? 'Transfer Initialized' : 'Incoming Transfer';
         const description = type === 'debit'
-            ? `An outbound settlement of <strong>$${amount.toLocaleString()}</strong> has been finalized.`
-            : `An inbound capital injection of <strong>$${amount.toLocaleString()}</strong> has been recognized.`;
+            ? `An outbound transfer of <strong>$${amount.toLocaleString()}</strong> has been initiated via ${protocol} protocol.`
+            : `An incoming transfer of <strong>$${amount.toLocaleString()}</strong> from the ${protocol} network has been recognized.`;
 
         const html = getBaseTemplate(
-            'Transaction Notification.',
+            'Transaction Activity.',
             `<p style="margin-top: 0;">${description}</p>
              <div style="margin: 30px 0; border-top: 1px solid #eeeeee; padding-top: 30px;">
                 <table style="width: 100%; font-size: 14px; color: #444444;">
@@ -116,15 +123,19 @@ export const sendTransactionNotification = async (email: string, amount: number,
                         <td style="text-align: right; padding-bottom: 10px; font-family: monospace;">${referenceId}</td>
                     </tr>
                     <tr>
+                        <td style="color: #999999; padding-bottom: 10px;">Protocol</td>
+                        <td style="text-align: right; padding-bottom: 10px;">${protocol}</td>
+                    </tr>
+                    <tr>
                         <td style="color: #999999; padding-bottom: 10px;">Status</td>
-                        <td style="color: #2e7d32; text-align: right; padding-bottom: 10px; font-weight: bold;">SETTLED</td>
+                        <td style="color: ${status.toLowerCase() === 'pending' ? '#f57c00' : '#2e7d32'}; text-align: right; padding-bottom: 10px; font-weight: bold; text-transform: uppercase;">${status}</td>
                     </tr>
                 </table>
              </div>
-             <p style="font-size: 13px; color: #777777; margin-top: 30px;">Log in to your dashboard to view the full details of this transaction.</p>`
+             <p style="font-size: 13px; color: #777777; margin-top: 30px;">Log in to your dashboard to view the full details of this transfer state.</p>`
         );
 
-        const text = `Optima Nexgen Transaction Alert: ${type === 'debit' ? 'Outbound' : 'Inbound'} flow of $${amount.toLocaleString()} has been settled. Reference: ${referenceId}`;
+        const text = `Optima Nexgen Transaction Alert: ${type === 'debit' ? 'Outbound' : 'Inbound'} transfer of $${amount.toLocaleString()} (${protocol}) status: ${status}. Reference: ${referenceId}`;
 
         const info = await transporter.sendMail({
             from: `"Optima Nexgen Notifications" <${ENV.SMTP_USER}>`,

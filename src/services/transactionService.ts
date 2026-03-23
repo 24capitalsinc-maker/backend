@@ -110,12 +110,12 @@ export const transferFunds = async (
             }], { session });
 
             // Send notification to receiver
-            sendTransactionNotification(receiver.email, amount, 'credit', referenceId);
+            sendTransactionNotification(receiver.email, amount, 'credit', referenceId, status, protocol);
         }
 
-        // Send operational alert to admin for all transfers
+        // Send informative alert to admin for all transfers
         sendAdminAlert(
-            'Transfer processed',
+            `[Capital Movement] ${sender.name} - ${commonData.currency} ${amount.toLocaleString()}`,
             `<p style="margin-top: 0;">A fund transfer has been processed.</p>
              <div style="margin: 20px 0; padding: 20px; border: 1px solid #eeeeee; background: #fafafa;">
                 <p style="margin: 0; font-size: 13px;"><strong>Amount:</strong> ${commonData.currency} ${amount.toLocaleString()}</p>
@@ -131,7 +131,7 @@ export const transferFunds = async (
         session.endSession();
 
         // Send notification to sender
-        sendTransactionNotification(sender.email, amount, 'debit', referenceId);
+        sendTransactionNotification(sender.email, amount, 'debit', referenceId, status, protocol);
 
         return debitTransaction[0];
     } catch (error) {
