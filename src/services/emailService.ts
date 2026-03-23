@@ -16,25 +16,25 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const getBaseTemplate = (title: string, content: string, footerPrefix: string = "optimanexgen Secure") => `
-    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #050505; color: #ffffff; padding: 60px 20px; text-align: center;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: #0a0a0a; border: 1px solid rgba(212,175,55,0.15); box-shadow: 0 40px 100px rgba(0,0,0,0.8);">
+const getBaseTemplate = (title: string, content: string, footerPrefix: string = "Optima Nexgen Secure") => `
+    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f9f9f9; color: #333333; padding: 40px 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #eeeeee; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
             <!-- Header -->
-            <div style="padding: 40px; border-bottom: 1px solid rgba(212,175,55,0.1);">
-                <p style="color: #D4AF37; font-size: 10px; letter-spacing: 0.5em; text-transform: uppercase; font-weight: 800; margin: 0 0 15px 0;">${footerPrefix}</p>
-                <h1 style="font-size: 32px; font-weight: 200; margin: 0; color: #ffffff; letter-spacing: -0.02em;">${title}</h1>
+            <div style="padding: 30px 40px; background-color: #050505; border-bottom: 2px solid #D4AF37;">
+                <p style="color: #D4AF37; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; font-weight: 700; margin: 0 0 10px 0;">${footerPrefix}</p>
+                <h1 style="font-size: 24px; font-weight: 300; margin: 0; color: #ffffff; letter-spacing: -0.01em;">${title}</h1>
             </div>
             
             <!-- Content -->
-            <div style="padding: 50px 40px; text-align: left; line-height: 1.8; color: rgba(255,255,255,0.7); font-size: 15px;">
+            <div style="padding: 40px; text-align: left; line-height: 1.6; color: #444444; font-size: 15px;">
                 ${content}
             </div>
             
             <!-- Footer -->
-            <div style="padding: 30px 40px; border-top: 1px solid rgba(212,175,55,0.05); background-color: rgba(212,175,55,0.02);">
-                <p style="color: rgba(255,255,255,0.2); font-size: 11px; margin: 0; letter-spacing: 0.1em;">
-                    This communication is intended solely for institutional partners of optimanexgen. <br>
-                    © 2026 optimanexgen Institutional Wealth. All global meridians reserved.
+            <div style="padding: 30px 40px; border-top: 1px solid #eeeeee; background-color: #fafafa;">
+                <p style="color: #999999; font-size: 11px; margin: 0; line-height: 1.5;">
+                    This is an automated message from Optima Nexgen. Please do not reply directly to this email.<br>
+                    © 2026 Optima Nexgen Institutional Banking. All rights reserved.
                 </p>
             </div>
         </div>
@@ -43,21 +43,25 @@ const getBaseTemplate = (title: string, content: string, footerPrefix: string = 
 
 export const sendWelcomeEmail = async (email: string, name: string) => {
     try {
+        const title = 'Account Opening.';
         const html = getBaseTemplate(
-            'Institutional Onboarding.',
+            title,
             `<p style="margin-top: 0;">Welcome, <strong>${name}</strong>.</p>
-             <p>Your institutional portfolio has been successfully established within the optimanexgen sovereign vault. You now have access to global liquidity and private wealth management protocols.</p>
-             <p>Our commitment to your capital preservation and growth is absolute.</p>
-             <div style="margin-top: 40px; padding: 20px; border-left: 2px solid #D4AF37; background: rgba(212,175,55,0.05);">
-                <p style="margin: 0; font-size: 13px; color: #D4AF37;"><strong>Protocol Alpha-7 Active</strong><br>Account status: Live & Verified</p>
+             <p>Your institutional account has been successfully established with Optima Nexgen. You now have access to our secure digital banking platform and portfolio management services.</p>
+             <p>Our team is committed to providing you with the highest standard of service and security.</p>
+             <div style="margin-top: 30px; padding: 20px; border-left: 2px solid #D4AF37; background: #fafafa;">
+                <p style="margin: 0; font-size: 13px; color: #b08d18;"><strong>Account Verified</strong><br>Your profile is now live and ready for use.</p>
              </div>`
         );
 
+        const text = `Welcome to Optima Nexgen, ${name}.\n\nYour institutional account has been successfully established. You now have access to our secure digital banking platform.\n\nAccount Status: Verified and Live.`;
+
         const info = await transporter.sendMail({
-            from: `"optimanexgen" <${ENV.SMTP_USER}>`,
+            from: `"Optima Nexgen" <${ENV.SMTP_USER}>`,
             to: email,
-            subject: 'Institutional Onboarding: Welcome to optimanexgen',
+            subject: 'Welcome to Optima Nexgen: Your Account is Ready',
             html,
+            text,
         });
         console.log(`✅ Welcome email sent to ${email}. MessageID: ${info.messageId}`);
     } catch (error) {
@@ -67,23 +71,27 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
 
 export const sendVerificationEmail = async (email: string, name: string, code: string) => {
     try {
+        const title = 'Verify Your Identity.';
         const html = getBaseTemplate(
-            'Verify Your Identity.',
+            title,
             `<p style="margin-top: 0;">Hello ${name},</p>
-             <p>To finalize the synchronization of your private wealth portfolio, please authenticate using the following high-security verification code:</p>
-             <div style="background: #111111; border: 1px solid rgba(212,175,55,0.3); padding: 40px; text-align: center; margin: 40px 0;">
-                <p style="color: rgba(255,255,255,0.3); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; margin: 0 0 15px 0;">Encryption Key</p>
-                <p style="color: #D4AF37; font-size: 48px; font-weight: bold; letter-spacing: 0.5em; margin: 0; font-family: 'Courier New', monospace;">${code}</p>
-                <p style="color: rgba(255,255,255,0.2); font-size: 11px; margin: 15px 0 0 0;">Expires in 15 minutes // Single Use Only</p>
+             <p>To finalize your account setup and ensure secure access, please use the following verification code:</p>
+             <div style="background: #f5f5f5; border: 1px solid #dddddd; padding: 30px; text-align: center; margin: 30px 0; border-radius: 4px;">
+                <p style="color: #666666; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 10px 0;">One-Time Verification Code</p>
+                <p style="color: #b08d18; font-size: 36px; font-weight: bold; letter-spacing: 0.2em; margin: 0; font-family: sans-serif;">${code}</p>
+                <p style="color: #999999; font-size: 11px; margin: 10px 0 0 0;">Expires in 15 minutes</p>
              </div>
-             <p style="font-size: 12px; color: rgba(255,255,255,0.4);">If you did not initiate this request, please mobilize security protocols immediately by contacting your advisor.</p>`
+             <p style="font-size: 13px; color: #777777;">If you did not request this code, please contact our support team immediately.</p>`
         );
 
+        const text = `Hello ${name},\n\nYour verification code for Optima Nexgen is: ${code}\n\nThis code expires in 15 minutes. If you did not request this, please contact support.`;
+
         const info = await transporter.sendMail({
-            from: `"optimanexgen Security" <${ENV.SMTP_USER}>`,
+            from: `"Optima Nexgen Security" <${ENV.SMTP_USER}>`,
             to: email,
-            subject: 'Secure Authenticator: Verification Protocol',
+            subject: 'Your Optima Nexgen Verification Code',
             html,
+            text,
         });
         console.log(`✅ Verification email sent to ${email}. MessageID: ${info.messageId}`);
     } catch (error) {
@@ -99,28 +107,31 @@ export const sendTransactionNotification = async (email: string, amount: number,
             : `An inbound capital injection of <strong>$${amount.toLocaleString()}</strong> has been recognized.`;
 
         const html = getBaseTemplate(
-            'Ledger Update.',
+            'Transaction Notification.',
             `<p style="margin-top: 0;">${description}</p>
-             <div style="margin: 30px 0; border-top: 1px solid rgba(212,175,55,0.1); padding-top: 30px;">
-                <table style="width: 100%; font-size: 13px;">
+             <div style="margin: 30px 0; border-top: 1px solid #eeeeee; padding-top: 30px;">
+                <table style="width: 100%; font-size: 14px; color: #444444;">
                     <tr>
-                        <td style="color: rgba(255,255,255,0.3); padding-bottom: 10px;">Reference ID</td>
-                        <td style="color: #ffffff; text-align: right; padding-bottom: 10px; font-family: monospace;">${referenceId}</td>
+                        <td style="color: #999999; padding-bottom: 10px;">Reference ID</td>
+                        <td style="text-align: right; padding-bottom: 10px; font-family: monospace;">${referenceId}</td>
                     </tr>
                     <tr>
-                        <td style="color: rgba(255,255,255,0.3); padding-bottom: 10px;">Status</td>
-                        <td style="color: #00ff88; text-align: right; padding-bottom: 10px; font-weight: bold; letter-spacing: 0.1em;">SETTLED</td>
+                        <td style="color: #999999; padding-bottom: 10px;">Status</td>
+                        <td style="color: #2e7d32; text-align: right; padding-bottom: 10px; font-weight: bold;">SETTLED</td>
                     </tr>
                 </table>
              </div>
-             <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 30px;">This transaction has been recorded on the global institutional ledger.</p>`
+             <p style="font-size: 13px; color: #777777; margin-top: 30px;">Log in to your dashboard to view the full details of this transaction.</p>`
         );
 
+        const text = `Optima Nexgen Transaction Alert: ${type === 'debit' ? 'Outbound' : 'Inbound'} flow of $${amount.toLocaleString()} has been settled. Reference: ${referenceId}`;
+
         const info = await transporter.sendMail({
-            from: `"optimanexgen Ledger" <${ENV.SMTP_USER}>`,
+            from: `"Optima Nexgen Notifications" <${ENV.SMTP_USER}>`,
             to: email,
             subject,
             html,
+            text,
         });
         console.log(`✅ Transaction notification sent to ${email}. MessageID: ${info.messageId}`);
     } catch (error) {
@@ -145,13 +156,16 @@ export const sendTransferStatusUpdate = async (email: string, amount: number, st
             <p style="font-size: 12px; color: rgba(255,255,255,0.3);">Reference ID: <span style="font-family: monospace; color: #ffffff;">${referenceId}</span></p>
         `;
 
-        const html = getBaseTemplate(title, content, 'Institutional Review');
+        const html = getBaseTemplate(title, content, 'Account Review');
+
+        const text = `Optima Nexgen Account Update: The transfer of $${amount.toLocaleString()} is now ${status.toUpperCase()}. Reference: ${referenceId}`;
 
         const info = await transporter.sendMail({
-            from: `"optimanexgen Review" <${ENV.SMTP_USER}>`,
+            from: `"Optima Nexgen Review" <${ENV.SMTP_USER}>`,
             to: email,
-            subject: `Institutional Update: ${title}`,
+            subject: `Account Update: ${title}`,
             html,
+            text,
         });
         console.log(`✅ Status update email sent to ${email}. MessageID: ${info.messageId}`);
     } catch (error) {
@@ -162,21 +176,25 @@ export const sendTransferStatusUpdate = async (email: string, amount: number, st
 export const sendPasswordResetEmail = async (email: string, token: string) => {
     try {
         const resetURL = `${ENV.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${token}`;
+        const title = 'Reset Your Password.';
         const html = getBaseTemplate(
-            'Credential Recovery.',
-            `<p style="margin-top: 0;">A recovery protocol has been initialized for your institutional credentials.</p>
-             <p>Access to the sovereign vault is restricted until security parameters are re-established. Please use the secure link below to proceed:</p>
+            title,
+            `<p style="margin-top: 0;">We received a request to reset the password for your Optima Nexgen account.</p>
+             <p>To proceed with setting a new password, please click the secure link below:</p>
              <div style="text-align: center; margin: 40px 0;">
-                <a href="${resetURL}" style="background-color: #D4AF37; color: #000; padding: 18px 40px; text-decoration: none; font-weight: bold; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; display: inline-block; box-shadow: 0 10px 30px rgba(212,175,55,0.3);">Reset Credentials</a>
+                <a href="${resetURL}" style="background-color: #D4AF37; color: #ffffff; padding: 15px 35px; text-decoration: none; font-weight: bold; font-size: 14px; border-radius: 4px; display: inline-block;">Reset Password</a>
              </div>
-             <p style="font-size: 12px; color: rgba(255,255,255,0.4);">This link will expire in 15 minutes. If you did not initialize this sequence, mobilize support immediately.</p>`
+             <p style="font-size: 13px; color: #777777;">This link will expire in 15 minutes. If you did not make this request, you can safely ignore this email.</p>`
         );
 
+        const text = `Hello,\n\nWe received a request to reset your Optima Nexgen password. Please use the following link to proceed: ${resetURL}\n\nThis link expires in 15 minutes.`;
+
         const info = await transporter.sendMail({
-            from: `"optimanexgen Security" <${ENV.SMTP_USER}>`,
+            from: `"Optima Nexgen Security" <${ENV.SMTP_USER}>`,
             to: email,
-            subject: 'Credential Recovery: Secure Link',
+            subject: 'Reset Your Optima Nexgen Password',
             html,
+            text,
         });
         console.log(`✅ Password reset email sent to ${email}. MessageID: ${info.messageId}`);
     } catch (error) {
@@ -187,16 +205,19 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
 export const sendAdminAlert = async (subject: string, content: string) => {
     try {
         const html = getBaseTemplate(
-            'Institutional Alert.',
+            'System Alert.',
             content,
-            'Sovereign Operations'
+            'Operations'
         );
 
+        const text = `Optima Nexgen Admin Alert: ${subject}\n\n${content}`;
+
         const info = await transporter.sendMail({
-            from: `"optimanexgen Ops" <${ENV.SMTP_USER}>`,
+            from: `"Optima Nexgen Ops" <${ENV.SMTP_USER}>`,
             to: ENV.ADMIN_EMAIL,
-            subject: `[ADMIN ALERT] ${subject}`,
+            subject: `[ADMIN] ${subject}`,
             html,
+            text,
         });
         console.log(`✅ Admin alert sent to ${ENV.ADMIN_EMAIL}. MessageID: ${info.messageId}`);
     } catch (error) {
@@ -207,20 +228,23 @@ export const sendAdminAlert = async (subject: string, content: string) => {
 export const sendSecurityAlert = async (email: string, action: string) => {
     try {
         const html = getBaseTemplate(
-            'Security Breach Alert.',
-            `<p style="margin-top: 0;">Unusual activity detected on your institutional profile.</p>
-             <div style="background: rgba(255,77,77,0.05); border-left: 3px solid #ff4d4d; padding: 25px; margin: 30px 0;">
-                <p style="margin: 0; color: #ff4d4d; font-weight: bold; font-size: 14px;">Institutional Metadata Modified</p>
-                <p style="margin: 10px 0 0 0; font-size: 13px;"><strong>Trigger:</strong> ${action}</p>
+            'Security Notification.',
+            `<p style="margin-top: 0;">An update has been made to your account security settings.</p>
+             <div style="background: #fff5f5; border-left: 4px solid #d32f2f; padding: 25px; margin: 30px 0;">
+                <p style="margin: 0; color: #d32f2f; font-weight: bold; font-size: 14px;">Security Update</p>
+                <p style="margin: 10px 0 0 0; font-size: 13px; color: #444444;"><strong>Action:</strong> ${action}</p>
              </div>
-             <p>If you did not authorize this modification, please contact our counter-fraud unit immediately to protect your assets.</p>`
+             <p style="font-size: 13px; color: #777777;">If you did not authorize this change, please contact our support team immediately.</p>`
         );
 
+        const text = `Optima Nexgen Security Alert: A change was made to your account (${action}). If this wasn't you, please contact support.`;
+
         await transporter.sendMail({
-            from: `"optimanexgen Security" <${ENV.SMTP_USER}>`,
+            from: `"Optima Nexgen Security" <${ENV.SMTP_USER}>`,
             to: email,
-            subject: 'Urgent: Institutional Security Notification',
+            subject: 'Security Notification: Account Updated',
             html,
+            text,
         });
     } catch (error) {
         console.error('Error sending security alert email:', error);
