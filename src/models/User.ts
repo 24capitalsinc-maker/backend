@@ -35,6 +35,7 @@ export interface IUser extends Document {
     };
     resetPasswordToken?: string;
     resetPasswordExpires?: Date;
+    refreshToken?: string;
     freezeReason?: string;
     createdAt: Date;
 }
@@ -74,6 +75,7 @@ const UserSchema: Schema = new Schema({
     },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
+    refreshToken: { type: String },
     freezeReason: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now },
 });

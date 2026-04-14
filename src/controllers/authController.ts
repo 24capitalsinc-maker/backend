@@ -125,6 +125,11 @@ export const verifyEmail = async (req: Request, res: Response) => {
 
         // Now issue the full auth tokens
         const { accessToken, refreshToken } = generateTokens((updatedUser._id as any).toString());
+
+        // Save refresh token to DB (hashed)
+        const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+        await User.findByIdAndUpdate(updatedUser._id, { refreshToken: hashedRefreshToken });
+
         res.json({
             _id: updatedUser._id,
             name: updatedUser.name,
@@ -166,6 +171,11 @@ export const login = async (req: Request, res: Response) => {
             }
 
             const { accessToken, refreshToken } = generateTokens((user._id as any).toString());
+
+            // Save refresh token to DB (hashed)
+            const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+            await User.findByIdAndUpdate(user._id, { refreshToken: hashedRefreshToken });
+
             res.json({
                 _id: user._id,
                 name: user.name,
@@ -192,6 +202,48 @@ export const login = async (req: Request, res: Response) => {
     } catch (error: any) {
         // Handled via centralized error middleware
         res.status(500).json({ message: 'Server error: ' + error.message });
+    }
+};
+
+export const refreshToken = async (req: Request, res: Response) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+        return res.status(401).json({ message: 'Refresh token required' });
+    }
+
+    try {
+        const decoded: any = jwt.verify(refreshToken, ENV.REFRESH_TOKEN_SECRET as string);
+        const user = await User.findById(decoded.id);
+
+        if (!user || !user.refreshToken) {
+            return res.status(401).json({ message: 'Invalid session' });
+        }
+
+        const isMatch = await bcrypt.compare(refreshToken, user.refreshToken);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Session mismatch' });
+        }
+
+        const tokens = generateTokens(user._id.toString());
+
+        // Hash and update the new refresh token in DB
+        const hashedRefreshToken = await bcrypt.hash(tokens.refreshToken, 10);
+        await User.findByIdAndUpdate(user._id, { refreshToken: hashedRefreshToken });
+
+        res.json(tokens);
+    } catch (error: any) {
+        res.status(401).json({ message: 'Session expired' });
+    }
+};
+
+export const logout = async (req: Request, res: Response) => {
+    const { userId } = req.body;
+    try {
+        await User.findByIdAndUpdate(userId, { $unset: { refreshToken: 1 } });
+        res.json({ message: 'Logged out successfully' });
+    } catch (error: any) {
+        res.status(500).json({ message: 'Logout failed' });
     }
 };
 

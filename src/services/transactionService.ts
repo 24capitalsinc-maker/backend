@@ -32,10 +32,15 @@ export const transferFunds = async (
         const protocol = metadata.routingProtocol || 'Domestic';
         let receiver = null;
 
+        // Validating Account number format (up to 10 digits as requested)
+        if (!/^\d{1,10}$/.test(receiverAccountNumber)) {
+            throw new Error('Beneficiary account number must be numeric and up to 10 digits.');
+        }
+
         if (protocol === 'Domestic') {
             receiver = await User.findOne({ accountNumber: receiverAccountNumber }).session(session);
-            if (!receiver) throw new Error('Beneficiary not found in the local ledger. Please verify the account number or use International routing.');
-            if (receiver.accountNumber === sender.accountNumber) throw new Error('Sovereign rule violation: Self-transfers are not permitted.');
+            // Existence check removed per user request - allow transfers to any 10-digit number
+            if (receiverAccountNumber === sender.accountNumber) throw new Error('Sovereign rule violation: Self-transfers are not permitted.');
         }
 
         // Enforcement: Limit Protocol

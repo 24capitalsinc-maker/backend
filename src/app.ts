@@ -48,7 +48,19 @@ const globalLimiter = rateLimit({
 app.use(helmet());
 app.use(globalLimiter);
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    origin: (origin, callback) => {
+        const allowed = [
+            process.env.FRONTEND_URL,
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'http://192.168.1.239:3000',
+        ].filter(Boolean);
+        if (!origin || allowed.includes(origin)) {
+            callback(null, origin || '*');
+        } else {
+            callback(new Error(`CORS: Origin ${origin} not allowed`));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
