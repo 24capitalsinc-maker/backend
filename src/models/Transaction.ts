@@ -4,6 +4,7 @@ export interface ITransaction extends Document {
     sender: mongoose.Types.ObjectId;
     receiver?: mongoose.Types.ObjectId;
     receiverAccountNumber: string;
+    receiverName: string;
     amount: number;
     currency: string;
     routingProtocol: 'Domestic' | 'International' | 'Offshore';
@@ -23,6 +24,7 @@ const TransactionSchema: Schema = new Schema({
     sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     receiver: { type: Schema.Types.ObjectId, ref: 'User' },
     receiverAccountNumber: { type: String, required: true },
+    receiverName: { type: String, required: true },
     amount: { type: Number, required: true },
     currency: { type: String, default: 'USD' },
     routingProtocol: { type: String, enum: ['Domestic', 'International', 'Offshore'], default: 'Domestic' },

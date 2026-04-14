@@ -11,9 +11,9 @@ router.get('/settings', async (req, res) => {
     try {
         const settings = await require('../models/SystemSettings').default.findOne({});
         if (!settings) return res.json({
-            companyName: 'Capital24',
-            logoText: 'Capital',
-            logoAccent: '24',
+            companyName: 'Optima Nexgen',
+            logoText: 'Optima',
+            logoAccent: 'Nexgen',
             logoUrl: '/logo.png',
             isRegistrationEnabled: true
         });

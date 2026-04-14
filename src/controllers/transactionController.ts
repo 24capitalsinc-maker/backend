@@ -5,6 +5,7 @@ import Transaction from '../models/Transaction';
 export const makeTransfer = async (req: any, res: Response) => {
     const {
         receiverAccountNumber,
+        receiverName,
         amount,
         description,
         currency,
@@ -18,6 +19,7 @@ export const makeTransfer = async (req: any, res: Response) => {
         const transaction = await transferFunds(
             req.user._id,
             receiverAccountNumber,
+            receiverName,
             amount,
             description,
             { currency, routingProtocol, swiftCode, iban, jurisdiction }

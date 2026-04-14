@@ -15,35 +15,62 @@ export const getUserProfile = async (req: any, res: Response) => {
 export const updateProfile = async (req: any, res: Response) => {
     const {
         name, phoneNumber, address, occupation,
-        twoFactorEnabled, notifications, preferences, limits
+        twoFactorEnabled, notifications, preferences, limits,
+        profileImage
     } = req.body;
 
+    try {
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $set: {
+                    name,
+                    phoneNumber,
+                    address,
+                    occupation,
+                    twoFactorEnabled,
+                    notifications,
+                    preferences,
+                    limits,
+                    profileImage
+                }
+            },
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Send security alert for sensitive changes
+        if (twoFactorEnabled !== undefined || notifications || limits) {
+            sendSecurityAlert(updatedUser.email, 'Security preferences or limits updated');
+        }
+
+        res.json(updatedUser);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+export const requestAccountClosure = async (req: any, res: Response) => {
     try {
         const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        if (name) user.name = name;
-        if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
-        if (address !== undefined) user.address = address;
-        if (occupation !== undefined) user.occupation = occupation;
-        if (twoFactorEnabled !== undefined) user.twoFactorEnabled = twoFactorEnabled;
-        if (notifications) user.notifications = { ...user.notifications, ...notifications };
-        if (preferences) user.preferences = { ...user.preferences, ...preferences };
-        if (limits) user.limits = { ...user.limits, ...limits };
-
-        const updatedUser = await user.save();
-
-        // Send security alert for sensitive changes
-        if (twoFactorEnabled !== undefined || notifications || limits) {
-            sendSecurityAlert(user.email, 'Security preferences or limits updated');
+        if (user.isClosureRequested) {
+            return res.status(400).json({ message: 'Account closure request already pending' });
         }
 
-        // Remove sensitive fields
-        const userObj = updatedUser.toObject() as any;
-        const { password, ...response } = userObj;
+        user.isClosureRequested = true;
+        user.closureReason = req.body.reason || 'User initiated closure';
+        await user.save();
 
-        res.json(response);
+        // Notify user via security alert
+        sendSecurityAlert(user.email, 'Account Closure Requested. Your request is currently under administrative review.');
+
+        res.json({ message: 'Account closure request submitted successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Failed to submit closure request' });
     }
 };

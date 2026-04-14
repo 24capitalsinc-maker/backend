@@ -11,7 +11,9 @@ import {
     updateSystemSettings,
     updateTransaction,
     getLiquidityStats,
-    uploadLogo
+    uploadLogo,
+    getClosureRequests,
+    approveAccountClosure
 } from '../controllers/adminController';
 import multer from 'multer';
 import path from 'path';
@@ -56,5 +58,7 @@ router.get('/liquidity', getLiquidityStats);
 router.get('/settings', getSystemSettings);
 router.put('/settings', updateSystemSettings);
 router.post('/upload-logo', upload.single('logo'), uploadLogo);
+router.get('/closure-requests', getClosureRequests);
+router.post('/approve-closure', approveAccountClosure);
 
 export default router;

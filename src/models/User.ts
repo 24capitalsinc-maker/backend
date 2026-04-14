@@ -37,6 +37,9 @@ export interface IUser extends Document {
     resetPasswordExpires?: Date;
     refreshToken?: string;
     freezeReason?: string;
+    profileImage?: string;
+    isClosureRequested: boolean;
+    closureReason: string;
     createdAt: Date;
 }
 
@@ -77,7 +80,13 @@ const UserSchema: Schema = new Schema({
     resetPasswordExpires: { type: Date },
     refreshToken: { type: String },
     freezeReason: { type: String, default: '' },
+    profileImage: { type: String, default: '' },
+    isClosureRequested: { type: Boolean, default: false },
+    closureReason: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+if (mongoose.models.User) {
+    delete mongoose.models.User;
+}
+export default mongoose.model<IUser>('User', UserSchema);

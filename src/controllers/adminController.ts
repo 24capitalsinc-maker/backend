@@ -144,13 +144,61 @@ export const updateTransaction = async (req: Request, res: Response) => {
         if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
 
         const oldStatus = transaction.status;
+        const newStatus = req.body.status;
+
+        // Settlement Logic: When status moves from pending -> success
+        if (newStatus === 'success' && oldStatus === 'pending') {
+            // Find sender to ensure liquidity (already deducted in service, but good for context)
+            const sender = await User.findById(transaction.sender);
+
+            // Handle internal (Domestic) settlement
+            if (transaction.routingProtocol === 'Domestic') {
+                const receiver = await User.findOne({ accountNumber: transaction.receiverAccountNumber });
+
+                if (receiver) {
+                    // Credit the receiver
+                    receiver.accountBalance += transaction.amount;
+                    await receiver.save();
+
+                    // Create the credit record for the receiver's ledger
+                    await Transaction.create({
+                        amount: transaction.amount,
+                        currency: transaction.currency,
+                        routingProtocol: transaction.routingProtocol,
+                        status: 'success',
+                        referenceId: transaction.referenceId + '-C',
+                        receiverAccountNumber: transaction.receiverAccountNumber,
+                        receiverName: transaction.receiverName,
+                        sender: transaction.sender,
+                        receiver: receiver._id,
+                        type: 'credit',
+                        description: `Transfer from ${sender?.name || 'Authorized Entity'}`,
+                        detailLabel: `Domestic // INBOUND`,
+                        valueLabel: `${transaction.currency} // SETTLED`
+                    });
+
+                    // Notify receiver
+                    sendTransferStatusUpdate(
+                        receiver.email,
+                        transaction.amount,
+                        'success',
+                        transaction.referenceId,
+                        `Institutional credit of ${transaction.currency} ${transaction.amount.toLocaleString()} received.`
+                    );
+                }
+            }
+
+            // Update transaction value label for visual confirmation
+            transaction.valueLabel = `${transaction.currency} // SETTLED`;
+        }
+
         Object.assign(transaction, req.body);
         const updatedTransaction = await transaction.save();
 
         res.json(updatedTransaction);
 
-        // Notify user if status changed
-        if (req.body.status && req.body.status !== oldStatus) {
+        // Notify sender if status changed
+        if (newStatus && newStatus !== oldStatus) {
             const sender = transaction.sender as any;
             if (sender && sender.email) {
                 sendTransferStatusUpdate(
@@ -163,7 +211,6 @@ export const updateTransaction = async (req: Request, res: Response) => {
             }
         }
     } catch (error: any) {
-        // Handled via centralized error middleware
         res.status(500).json({
             message: 'Server error during transaction update'
         });
@@ -237,5 +284,51 @@ export const uploadLogo = async (req: Request, res: Response): Promise<any> => {
     } catch (error) {
         // Handled via centralized error middleware
         res.status(500).json({ message: 'Failed to persist institutional asset' });
+    }
+};
+
+export const getClosureRequests = async (req: Request, res: Response) => {
+    try {
+        const users = await User.find({ isClosureRequested: true }).select('-password');
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+export const approveAccountClosure = async (req: Request, res: Response) => {
+    const { userId } = req.body;
+    try {
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        if (!user.isClosureRequested) {
+            return res.status(400).json({ message: 'No closure request for this user' });
+        }
+
+        const userEmail = user.email;
+        const userName = user.name;
+
+        // Perform the deletion (as requested: "permanently delete all your data")
+        // Alternatively, we could just mark it as "closed" and keep the record
+        // User requested: "Closing your account will permanently delete all your data."
+        await User.findByIdAndDelete(userId);
+
+        // Also delete their transactions? 
+        // Usually we keep transactions for audit, but if they want "permanent deletion" of data...
+        // Let's keep it to user for now to be safe, but the account is gone.
+        // Actually, many banking apps keep transaction history.
+        // I'll just delete the user.
+
+        res.json({ message: 'Account closed and data purged successfully' });
+
+        sendAdminAlert(
+            'Account Closure Finalized',
+            `<p>The account for <strong>${userName}</strong> (${userEmail}) has been formally closed and purged from the active ledger.</p>
+             <p><strong>Approved by:</strong> Administrator</p>
+             <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>`
+        );
+    } catch (error) {
+        res.status(500).json({ message: 'Server error during account closure' });
     }
 };
