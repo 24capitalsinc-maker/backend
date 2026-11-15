@@ -224,7 +224,11 @@ export const updateTransaction = async (req: Request, res: Response) => {
         if (req.body.detailLabel !== undefined) transaction.detailLabel = req.body.detailLabel;
         if (req.body.valueLabel !== undefined) transaction.valueLabel = req.body.valueLabel;
         if (req.body.receiverAccountNumber !== undefined) transaction.receiverAccountNumber = req.body.receiverAccountNumber;
-        if (req.body.receiverName !== undefined) transaction.receiverName = req.body.receiverName;
+        if (req.body.receiverName !== undefined) {
+            transaction.receiverName = req.body.receiverName;
+        } else if (!transaction.receiverName) {
+            transaction.receiverName = 'Authorized Beneficiary';
+        }
 
         // Safely parse and assign date if provided
         if (req.body.createdAt) {
@@ -249,7 +253,10 @@ export const updateTransaction = async (req: Request, res: Response) => {
         const updatedTransaction = await transaction.save();
 
         // Populate sender and receiver for consistent client representation
-        await updatedTransaction.populate('sender receiver', 'name email accountNumber');
+        await updatedTransaction.populate([
+            { path: 'sender', select: 'name email accountNumber' },
+            { path: 'receiver', select: 'name email accountNumber' }
+        ]);
 
         res.json(updatedTransaction);
 

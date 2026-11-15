@@ -24,7 +24,7 @@ const TransactionSchema: Schema = new Schema({
     sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     receiver: { type: Schema.Types.ObjectId, ref: 'User' },
     receiverAccountNumber: { type: String, required: true },
-    receiverName: { type: String, required: true },
+    receiverName: { type: String, default: '' },
     amount: { type: Number, required: true },
     currency: { type: String, default: 'USD' },
     routingProtocol: { type: String, enum: ['Domestic', 'International', 'Offshore'], default: 'Domestic' },
