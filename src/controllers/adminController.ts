@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import User from '../models/User';
 import Transaction from '../models/Transaction';
 import SystemSettings from '../models/SystemSettings';
@@ -140,79 +141,132 @@ export const updateSystemSettings = async (req: Request, res: Response) => {
 export const updateTransaction = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const transaction = await Transaction.findById(id).populate('sender');
+        // Fetch raw transaction document without populate so Mongoose can save cleanly
+        const transaction = await Transaction.findById(id);
         if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
 
         const oldStatus = transaction.status;
-        const newStatus = req.body.status;
+        const newStatus = req.body.status || transaction.status;
+
+        // Fetch sender document if needed for email notifications and reference name
+        const sender = transaction.sender ? await User.findById(transaction.sender) : null;
 
         // Settlement Logic: When status moves from pending -> success
         if (newStatus === 'success' && oldStatus === 'pending') {
-            // Find sender to ensure liquidity (already deducted in service, but good for context)
-            const sender = await User.findById(transaction.sender);
+            const protocol = req.body.routingProtocol || transaction.routingProtocol;
+            const receiverAccount = req.body.receiverAccountNumber || transaction.receiverAccountNumber;
+            const transferAmount = typeof req.body.amount === 'number' && !isNaN(req.body.amount)
+                ? req.body.amount
+                : transaction.amount;
+            const transferCurrency = req.body.currency || transaction.currency;
 
             // Handle internal (Domestic) settlement
-            if (transaction.routingProtocol === 'Domestic') {
-                const receiver = await User.findOne({ accountNumber: transaction.receiverAccountNumber });
+            if (protocol === 'Domestic' && receiverAccount) {
+                const receiver = await User.findOne({ accountNumber: receiverAccount });
 
                 if (receiver) {
                     // Credit the receiver
-                    receiver.accountBalance += transaction.amount;
+                    receiver.accountBalance += transferAmount;
                     await receiver.save();
 
-                    // Create the credit record for the receiver's ledger
-                    await Transaction.create({
-                        amount: transaction.amount,
-                        currency: transaction.currency,
-                        routingProtocol: transaction.routingProtocol,
-                        status: 'success',
-                        referenceId: transaction.referenceId + '-C',
-                        receiverAccountNumber: transaction.receiverAccountNumber,
-                        receiverName: transaction.receiverName,
-                        sender: transaction.sender,
-                        receiver: receiver._id,
-                        type: 'credit',
-                        description: `Transfer from ${sender?.name || 'Authorized Entity'}`,
-                        detailLabel: `Domestic // INBOUND`,
-                        valueLabel: `${transaction.currency} // SETTLED`
-                    });
+                    // Idempotent creation of credit record (prevents duplicate key error on re-settlement)
+                    const creditRefId = `${transaction.referenceId}-C`;
+                    const existingCredit = await Transaction.findOne({ referenceId: creditRefId });
+
+                    if (!existingCredit) {
+                        await Transaction.create({
+                            amount: transferAmount,
+                            currency: transferCurrency,
+                            routingProtocol: protocol,
+                            status: 'success',
+                            referenceId: creditRefId,
+                            receiverAccountNumber: receiverAccount,
+                            receiverName: req.body.receiverName || receiver.name || transaction.receiverName || 'Authorized Beneficiary',
+                            sender: transaction.sender,
+                            receiver: receiver._id,
+                            type: 'credit',
+                            description: `Transfer from ${sender?.name || 'Authorized Entity'}`,
+                            detailLabel: `Domestic // INBOUND`,
+                            valueLabel: `${transferCurrency} // SETTLED`
+                        });
+                    }
 
                     // Notify receiver
-                    sendTransferStatusUpdate(
-                        receiver.email,
-                        transaction.amount,
-                        'success',
-                        transaction.referenceId,
-                        `Institutional credit of ${transaction.currency} ${transaction.amount.toLocaleString()} received.`
-                    );
+                    if (receiver.email) {
+                        sendTransferStatusUpdate(
+                            receiver.email,
+                            transferAmount,
+                            'success',
+                            transaction.referenceId,
+                            `Institutional credit of ${transferCurrency} ${transferAmount.toLocaleString()} received.`
+                        );
+                    }
                 }
             }
 
             // Update transaction value label for visual confirmation
-            transaction.valueLabel = `${transaction.currency} // SETTLED`;
+            transaction.valueLabel = `${transferCurrency} // SETTLED`;
         }
 
-        Object.assign(transaction, req.body);
+        // Cleanly assign updated scalar fields
+        if (typeof req.body.amount === 'number' && !isNaN(req.body.amount)) {
+            transaction.amount = req.body.amount;
+        }
+        if (req.body.currency !== undefined) transaction.currency = req.body.currency;
+        if (req.body.routingProtocol !== undefined) transaction.routingProtocol = req.body.routingProtocol;
+        if (req.body.swiftCode !== undefined) transaction.swiftCode = req.body.swiftCode;
+        if (req.body.iban !== undefined) transaction.iban = req.body.iban;
+        if (req.body.jurisdiction !== undefined) transaction.jurisdiction = req.body.jurisdiction;
+        if (req.body.type !== undefined) transaction.type = req.body.type;
+        if (req.body.status !== undefined) transaction.status = req.body.status;
+        if (req.body.referenceId !== undefined) transaction.referenceId = req.body.referenceId;
+        if (req.body.description !== undefined) transaction.description = req.body.description;
+        if (req.body.detailLabel !== undefined) transaction.detailLabel = req.body.detailLabel;
+        if (req.body.valueLabel !== undefined) transaction.valueLabel = req.body.valueLabel;
+        if (req.body.receiverAccountNumber !== undefined) transaction.receiverAccountNumber = req.body.receiverAccountNumber;
+        if (req.body.receiverName !== undefined) transaction.receiverName = req.body.receiverName;
+
+        // Safely parse and assign date if provided
+        if (req.body.createdAt) {
+            const parsedDate = new Date(req.body.createdAt);
+            if (!isNaN(parsedDate.getTime())) {
+                transaction.createdAt = parsedDate;
+            }
+        }
+
+        // Safely handle sender ID if explicitly updated
+        if (req.body.sender && mongoose.Types.ObjectId.isValid(req.body.sender)) {
+            transaction.sender = new mongoose.Types.ObjectId(req.body.sender);
+        }
+
+        // Safely handle receiver ID
+        if (req.body.receiver === null || req.body.receiver === '') {
+            transaction.receiver = undefined;
+        } else if (req.body.receiver && mongoose.Types.ObjectId.isValid(req.body.receiver)) {
+            transaction.receiver = new mongoose.Types.ObjectId(req.body.receiver);
+        }
+
         const updatedTransaction = await transaction.save();
+
+        // Populate sender and receiver for consistent client representation
+        await updatedTransaction.populate('sender receiver', 'name email accountNumber');
 
         res.json(updatedTransaction);
 
         // Notify sender if status changed
-        if (newStatus && newStatus !== oldStatus) {
-            const sender = transaction.sender as any;
-            if (sender && sender.email) {
-                sendTransferStatusUpdate(
-                    sender.email,
-                    transaction.amount,
-                    transaction.status,
-                    transaction.referenceId,
-                    req.body.description || transaction.description
-                );
-            }
+        if (newStatus && newStatus !== oldStatus && sender?.email) {
+            sendTransferStatusUpdate(
+                sender.email,
+                updatedTransaction.amount,
+                updatedTransaction.status,
+                updatedTransaction.referenceId,
+                req.body.description || updatedTransaction.description
+            );
         }
     } catch (error: any) {
+        console.error('Error during transaction update:', error);
         res.status(500).json({
-            message: 'Server error during transaction update'
+            message: error.message || 'Server error during transaction update'
         });
     }
 };
