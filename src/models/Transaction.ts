@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ITransaction extends Document {
-    sender: mongoose.Types.ObjectId;
+    sender?: mongoose.Types.ObjectId;
     receiver?: mongoose.Types.ObjectId;
     receiverAccountNumber: string;
     receiverName: string;
@@ -21,7 +21,7 @@ export interface ITransaction extends Document {
 }
 
 const TransactionSchema: Schema = new Schema({
-    sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    sender: { type: Schema.Types.ObjectId, ref: 'User' },
     receiver: { type: Schema.Types.ObjectId, ref: 'User' },
     receiverAccountNumber: { type: String, required: true },
     receiverName: { type: String, default: '' },

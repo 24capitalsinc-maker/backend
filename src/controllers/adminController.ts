@@ -65,8 +65,29 @@ export const updateUserBalance = async (req: Request, res: Response) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         const oldBalance = user.accountBalance;
+        const difference = accountBalance - oldBalance;
         user.accountBalance = accountBalance;
         await user.save();
+
+        // Create a Transaction record so this adjustment shows in transaction history
+        if (difference !== 0) {
+            const txType = difference > 0 ? 'credit' : 'debit';
+            const referenceId = `ADMIN-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+            await Transaction.create({
+                receiver: txType === 'credit' ? user._id : undefined,
+                sender: txType === 'debit' ? user._id : undefined,
+                receiverAccountNumber: user.accountNumber || 'N/A',
+                receiverName: user.name || 'Account Holder',
+                amount: Math.abs(difference),
+                currency: 'USD',
+                type: txType,
+                status: 'success',
+                referenceId,
+                description: `Administrative balance adjustment by system`,
+                detailLabel: `ADMIN // ${txType.toUpperCase()}`,
+                valueLabel: 'Institutional Liquidity',
+            });
+        }
 
         res.json({
             message: 'Institutional liquidity adjusted successfully',
@@ -82,6 +103,7 @@ export const updateUserBalance = async (req: Request, res: Response) => {
              <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>`
         );
     } catch (error) {
+        console.error('updateUserBalance error:', error);
         res.status(500).json({ message: 'Server error during liquidity adjustment' });
     }
 };
