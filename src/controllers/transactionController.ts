@@ -40,3 +40,20 @@ export const getMyTransactions = async (req: any, res: Response) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+// Public endpoint — no auth required — returns only safe receipt fields
+export const getReceiptByRef = async (req: Request, res: Response) => {
+    const { referenceId } = req.params;
+    try {
+        const transaction = await Transaction.findOne({ referenceId })
+            .select('referenceId amount currency type status routingProtocol receiverAccountNumber receiverName description jurisdiction createdAt detailLabel');
+
+        if (!transaction) {
+            return res.status(404).json({ message: 'Receipt not found' });
+        }
+
+        res.json(transaction);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
