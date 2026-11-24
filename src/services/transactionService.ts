@@ -26,7 +26,7 @@ export const transferFunds = async (
         if (!sender) throw new Error('Sender not found');
         if (sender.isFrozen) {
             const reason = sender.freezeReason ? `: ${sender.freezeReason}` : '';
-            throw new Error(`Institutional Sequestration Active${reason}. Fund transfers are temporarily suspended during audit.`);
+            throw new Error(`Your account is temporarily frozen${reason}. Fund transfers are paused. Please contact support.`);
         }
         if (sender.accountBalance < amount) throw new Error('Insufficient balance');
 
@@ -40,7 +40,7 @@ export const transferFunds = async (
 
         if (protocol === 'Domestic') {
             receiver = await User.findOne({ accountNumber: receiverAccountNumber }).session(session);
-            if (receiverAccountNumber === sender.accountNumber) throw new Error('Sovereign rule violation: Self-transfers are not permitted.');
+            if (receiverAccountNumber === sender.accountNumber) throw new Error('Self-transfers are not allowed. You cannot transfer money to your own account.');
         }
 
         // Enforcement: Limit Protocol
@@ -86,7 +86,7 @@ export const transferFunds = async (
             referenceId,
             receiverAccountNumber,
             receiverName,
-            valueLabel: `${currency} // PENDING`
+            valueLabel: `${currency} - Pending`
         };
 
         // Create transactions records
@@ -98,7 +98,7 @@ export const transferFunds = async (
             description: description || (protocol === 'Domestic'
                 ? `Transfer to ${receiverName}`
                 : `${protocol} Transfer to ${receiverName}`),
-            detailLabel: `${protocol} // OUTBOUND`
+            detailLabel: `${protocol} Transfer`
         }], { session });
 
         // Credit record is NOT created until approval to keep recipient ledger clean

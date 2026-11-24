@@ -83,14 +83,14 @@ export const updateUserBalance = async (req: Request, res: Response) => {
                 type: txType,
                 status: 'success',
                 referenceId,
-                description: `Administrative balance adjustment by system`,
-                detailLabel: `ADMIN // ${txType.toUpperCase()}`,
-                valueLabel: 'Institutional Liquidity',
+                description: txType === 'credit' ? 'Account credited by Admin' : 'Account debited by Admin',
+                detailLabel: txType === 'credit' ? 'Admin Deposit' : 'Admin Debit',
+                valueLabel: txType === 'credit' ? 'Deposit' : 'Debit',
             });
         }
 
         res.json({
-            message: 'Institutional liquidity adjusted successfully',
+            message: 'Account balance updated successfully',
             accountBalance: user.accountBalance
         });
 
@@ -207,9 +207,9 @@ export const updateTransaction = async (req: Request, res: Response) => {
                             sender: transaction.sender,
                             receiver: receiver._id,
                             type: 'credit',
-                            description: `Transfer from ${sender?.name || 'Authorized Entity'}`,
-                            detailLabel: `Domestic // INBOUND`,
-                            valueLabel: `${transferCurrency} // SETTLED`
+                            description: `Transfer from ${sender?.name || 'Sender'}`,
+                            detailLabel: `Domestic Transfer`,
+                            valueLabel: `${transferCurrency} - Completed`
                         });
                     }
 
@@ -220,14 +220,14 @@ export const updateTransaction = async (req: Request, res: Response) => {
                             transferAmount,
                             'success',
                             transaction.referenceId,
-                            `Institutional credit of ${transferCurrency} ${transferAmount.toLocaleString()} received.`
+                            `Transfer of ${transferCurrency} ${transferAmount.toLocaleString()} received.`
                         );
                     }
                 }
             }
 
             // Update transaction value label for visual confirmation
-            transaction.valueLabel = `${transferCurrency} // SETTLED`;
+            transaction.valueLabel = `${transferCurrency} - Completed`;
         }
 
         // Cleanly assign updated scalar fields
